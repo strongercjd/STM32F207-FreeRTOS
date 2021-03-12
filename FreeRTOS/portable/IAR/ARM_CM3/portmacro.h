@@ -172,7 +172,9 @@
 
 /*-----------------------------------------------------------*/
 
-    portFORCE_INLINE static BaseType_t xPortIsInsideInterrupt( void )
+    /*portFORCE_INLINE*/ 
+    #pragma inline
+    static BaseType_t xPortIsInsideInterrupt( void )
     {
         uint32_t ulCurrentInterrupt;
         BaseType_t xReturn;

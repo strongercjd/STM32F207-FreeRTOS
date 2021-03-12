@@ -28,6 +28,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
+#include "FreeRTOS.h"
+#include "task.h"
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
@@ -86,6 +89,67 @@ SysCtlDelay(unsigned long ulCount)
 /*无*/
 #endif /* __CC_ARM */
 
+/*start_task*/
+#define START_TASK_PRIO		1  //任务优先级
+#define START_STK_SIZE 		128 //栈大小
+TaskHandle_t StartTask_Handler;    //任务句柄
+void start_task(void *pvParameters);//任务函数
+
+/*Task1*/
+#define TASK1_PRIO		2
+#define TASK1_SIZE 		50  
+TaskHandle_t Task1_Handler;
+void TASK1_entry(void *pvParameters);
+
+/*Task2*/
+#define TASK2_PRIO		3
+#define TASK2_SIZE 		50  
+TaskHandle_t Task2_Handler;
+void TASK2_entry(void *pvParameters);
+
+
+/*Task1*/
+void TASK1_entry(void *pvParameters)
+{
+    while(1)
+    {
+        printf("Task1 flg\r\n");
+        vTaskDelay(1000);
+    }
+}   
+
+/*Task2*/
+void TASK2_entry(void *pvParameters)
+{
+  while(1)
+  {
+    printf("Task2 flg\r\n");
+    vTaskDelay(800);
+  }
+}
+
+
+//开始任务任务函数
+void start_task(void *pvParameters)
+{
+  taskENTER_CRITICAL();           //进入临界区
+  //创建TASK1任务
+  xTaskCreate((TaskFunction_t )TASK1_entry,//任务函数
+              (const char*    )"TASK1",   //任务名称
+              (uint16_t       )TASK1_SIZE,//任务堆栈大小
+              (void*          )NULL,	     //传递给任务函数的参数
+              (UBaseType_t    )TASK1_PRIO,//任务优先级
+              (TaskHandle_t*  )&Task1_Handler);//任务句柄
+  //创建TASK2任务
+  xTaskCreate((TaskFunction_t )TASK2_entry, //任务函数
+              (const char*    )"TASK2",    //任务名称
+              (uint16_t       )TASK2_SIZE, //任务堆栈大小
+              (void*          )NULL,          //传递给任务函数的参数
+              (UBaseType_t    )TASK2_PRIO, //任务优先级
+              (TaskHandle_t*  )&Task2_Handler);//任务句柄         
+  vTaskDelete(StartTask_Handler); //删除开始任务
+  taskEXIT_CRITICAL();            //退出临界区
+}
 
 
 /* Private function prototypes -----------------------------------------------*/
@@ -117,20 +181,22 @@ int main(void)
   printf("\r\n======================================================================");
   printf("\r\n=               (C) COPYRIGHT 2021                                   =");
   printf("\r\n=                                                                    =");
-  printf("\r\n=                ST207 USART_Printf                                  =");
+  printf("\r\n=                  ST207 FreeRTOS                                    =");
   printf("\r\n=                                                                    =");
   printf("\r\n=                                           By Firefly               =");
   printf("\r\n======================================================================");
   printf("\r\n\r\n");
   
-  while (1)
-  {
-    GPIO_SetBits(GPIOE,GPIO_Pin_4);  //熄灭LED灯
-    SysCtlDelay(500*(SystemCoreClock/3000));//延时500ms
-    GPIO_ResetBits(GPIOE,GPIO_Pin_4);//点亮LED灯
-    SysCtlDelay(500*(SystemCoreClock/3000));//延时500ms
-  }
+  //创建开始任务
+  xTaskCreate((TaskFunction_t )start_task,            //任务函数
+              (const char*    )"start_task",          //任务名称
+              (uint16_t       )START_STK_SIZE,        //任务堆栈大小
+              (void*          )NULL,                  //传递给任务函数的参数
+              (UBaseType_t    )START_TASK_PRIO,       //任务优先级
+              (TaskHandle_t*  )&StartTask_Handler);   //任务句柄              
+  vTaskStartScheduler();          //开启任务调度
 }
+
 void UART_Init(void)
 {
   USART_InitTypeDef USART_InitStructure;

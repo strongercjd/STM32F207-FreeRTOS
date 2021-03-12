@@ -305,6 +305,8 @@
           <state>$PROJ_DIR$\..</state>
           <state>$PROJ_DIR$\..\..\Libraries\STM32F2xx_StdPeriph_Driver\inc</state>
           <state>$PROJ_DIR$\..\..\Libraries\CMSIS\Device\ST\STM32F2xx\Include</state>
+          <state>$PROJ_DIR$\..\..\FreeRTOS\include</state>
+          <state>$PROJ_DIR$\..\..\FreeRTOS\portable\IAR\ARM_CM3</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -562,7 +564,7 @@
         </option>
         <option>
           <name>AUserIncludes</name>
-          <state></state>
+          <state>$PROJ_DIR$\..</state>
         </option>
         <option>
           <name>AExtraOptionsCheckV2</name>
@@ -959,6 +961,48 @@
     </file>
   </group>
   <group>
+    <name>FreeRTOS</name>
+    <group>
+      <name>FreeRTOS_Core</name>
+      <file>
+        <name>$PROJ_DIR$\..\..\FreeRTOS\croutine.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\FreeRTOS\event_groups.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\FreeRTOS\list.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\FreeRTOS\queue.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\FreeRTOS\stream_buffer.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\FreeRTOS\tasks.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\FreeRTOS\timers.c</name>
+      </file>
+    </group>
+    <group>
+      <name>FreeRTOS_Portable</name>
+      <file>
+        <name>$PROJ_DIR$\..\..\FreeRTOS\portable\MemMang\heap_4.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\FreeRTOS\portable\IAR\ARM_CM3\port.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\FreeRTOS\portable\IAR\ARM_CM3\portasm.s</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\FreeRTOS\portable\IAR\ARM_CM3\portmacro.h</name>
+      </file>
+    </group>
+  </group>
+  <group>
     <name>STM32F2xx_StdPeriph_Driver</name>
     <file>
       <name>$PROJ_DIR$\..\..\Libraries\STM32F2xx_StdPeriph_Driver\src\misc.c</name>
@@ -1056,6 +1100,9 @@
   </group>
   <group>
     <name>User</name>
+    <file>
+      <name>$PROJ_DIR$\..\FreeRTOSConfig.h</name>
+    </file>
     <file>
       <name>$PROJ_DIR$\..\main.c</name>
     </file>
