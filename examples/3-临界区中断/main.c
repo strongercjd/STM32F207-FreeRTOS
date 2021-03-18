@@ -97,121 +97,34 @@ void start_task(void *pvParameters);//任务函数
 
 /*Task1*/
 #define TASK1_PRIO		2
-#define TASK1_SIZE 		256  
+#define TASK1_SIZE 		50  
 TaskHandle_t Task1_Handler;
 void TASK1_entry(void *pvParameters);
 
-/*Task2*/
-#define TASK2_PRIO		3
-#define TASK2_SIZE 		128  
-TaskHandle_t Task2_Handler;
-void TASK2_entry(void *pvParameters);
 
 
-char InfoBuffer[1000];				//保存信息的数组
 /*Task1*/
 void TASK1_entry(void *pvParameters)
 {
-  uint32_t TotalRunTime;
-  UBaseType_t ArraySize,x;
-  TaskStatus_t *StatusArray;
   
-  TaskHandle_t TaskHandle;	
-  TaskStatus_t TaskStatus;
-  
-  eTaskState TaskState;
-  char TaskInfo[10];
-  
-  //第一步：函数uxTaskGetSystemState()的使用
-  printf("/********第一步：函数uxTaskGetSystemState()的使用**********/\r\n");
-  ArraySize=uxTaskGetNumberOfTasks();		//获取系统任务数量
-  StatusArray=pvPortMalloc(ArraySize*sizeof(TaskStatus_t));//申请内存
-  if(StatusArray!=NULL)					//内存申请成功
-  {
-    ArraySize=uxTaskGetSystemState((TaskStatus_t* 	)StatusArray, 	//任务信息存储数组
-                                   (UBaseType_t		)ArraySize, 	//任务信息存储数组大小
-                                   (uint32_t*		)&TotalRunTime);//保存系统总的运行时间
-    printf("TaskName\t\tPriority\t\tTaskNumber\t\t\r\n");
-    for(x=0;x<ArraySize;x++)
-    {
-      //通过串口打印出获取到的系统任务的有关信息，比如任务名称、
-      //任务优先级和任务编号。
-      printf("%s\t\t%d\t\t\t%d\t\t\t\r\n",				
-             StatusArray[x].pcTaskName,
-             (int)StatusArray[x].uxCurrentPriority,
-             (int)StatusArray[x].xTaskNumber);
-      
-    }
-  }
-  vPortFree(StatusArray);	//释放内存
-  printf("/**************************结束***************************/\r\n");
-
-  
-  //第二步：函数vTaskGetInfo()的使用
-  printf("/************第二步：函数vTaskGetInfo()的使用**************/\r\n");
-  TaskHandle=xTaskGetHandle("TASK2");			//根据任务名获取任务句柄。
-  //获取TASK2的任务信息
-  vTaskGetInfo((TaskHandle_t	)TaskHandle, 		//任务句柄
-               (TaskStatus_t*	)&TaskStatus, 		//任务信息结构体
-               (BaseType_t	)pdTRUE,			//允许统计任务堆栈历史最小剩余大小
-               (eTaskState	)eInvalid);			//函数自己获取任务运行壮态
-  //通过串口打印出指定任务的有关信息。
-  printf("任务名:                %s\r\n",TaskStatus.pcTaskName);
-  printf("任务编号:              %d\r\n",(int)TaskStatus.xTaskNumber);
-  printf("任务壮态:              %d\r\n",TaskStatus.eCurrentState);
-  printf("任务当前优先级:        %d\r\n",(int)TaskStatus.uxCurrentPriority);
-  printf("任务基优先级:          %d\r\n",(int)TaskStatus.uxBasePriority);
-  printf("任务堆栈基地址:        %#x\r\n",(int)TaskStatus.pxStackBase);
-  printf("任务堆栈历史剩余最小值:%d\r\n",TaskStatus.usStackHighWaterMark);
-  printf("/**************************结束***************************/\r\n");
-
-  
-  //第三步：函数eTaskGetState()的使用	
-  printf("/***********第三步：函数eTaskGetState()的使用*************/\r\n");
-  TaskHandle=xTaskGetHandle("TASK1");		//根据任务名获取任务句柄。
-  TaskState=eTaskGetState(TaskHandle);			//获取query_task任务的任务壮态
-  memset(TaskInfo,0,10);						
-  switch((int)TaskState)
-  {
-  case 0:
-    sprintf(TaskInfo,"Running");
-    break;
-  case 1:
-    sprintf(TaskInfo,"Ready");
-    break;
-  case 2:
-    sprintf(TaskInfo,"Suspend");
-    break;
-  case 3:
-    sprintf(TaskInfo,"Delete");
-    break;
-  case 4:
-    sprintf(TaskInfo,"Invalid");
-    break;
-  }
-  printf("任务壮态值:%d,对应的壮态为:%s\r\n",TaskState,TaskInfo);
-  printf("/**************************结束**************************/\r\n");
-
-  
-  //第四步：函数vTaskList()的使用	
-  printf("/*************第三步：函数vTaskList()的使用*************/\r\n");
-  vTaskList(InfoBuffer);							//获取所有任务的信息
-  printf("%s\r\n",InfoBuffer);					//通过串口打印所有任务的信息
-  printf("/**************************结束**************************/\r\n");
+  static uint32_t total_num=0;
   while(1)
   {
-    vTaskDelay(1000);                           //延时1s，也就是1000个时钟节拍	
+    //printf("秒数%d\r\n",total_num);
+    total_num+=1;
+    if(total_num==5) 
+    {
+      total_num = 0;
+      printf("关闭中断.............\r\n");
+      portDISABLE_INTERRUPTS();			//关闭中断
+      SysCtlDelay(5*(SystemCoreClock/3));	//延时5s
+      printf("打开中断.............\r\n");	//打开中断
+      portENABLE_INTERRUPTS();
+    }
+    vTaskDelay(1000);
   }
 }   
 
-/*Task2*/
-void TASK2_entry(void *pvParameters)
-{
-  while(1)
-  {
-    vTaskDelay(800);
-  }
-}
 
 //开始任务任务函数
 void start_task(void *pvParameters)
@@ -223,18 +136,47 @@ void start_task(void *pvParameters)
               (uint16_t       )TASK1_SIZE,//任务堆栈大小
               (void*          )NULL,	     //传递给任务函数的参数
               (UBaseType_t    )TASK1_PRIO,//任务优先级
-              (TaskHandle_t*  )&Task1_Handler);//任务句柄 
-  //创建TASK2任务
-  xTaskCreate((TaskFunction_t )TASK2_entry, //任务函数
-              (const char*    )"TASK2",    //任务名称
-              (uint16_t       )TASK2_SIZE, //任务堆栈大小
-              (void*          )NULL,          //传递给任务函数的参数
-              (UBaseType_t    )TASK2_PRIO, //任务优先级
-              (TaskHandle_t*  )&Task2_Handler);//任务句柄   
+              (TaskHandle_t*  )&Task1_Handler);//任务句柄        
   vTaskDelete(StartTask_Handler); //删除开始任务
   taskEXIT_CRITICAL();            //退出临界区
 }
 
+/**
+  * @brief  Configure the TIM IRQ Handler.
+  * @param  None
+  * @retval None
+  */
+void TIM_Config(void)
+{
+  NVIC_InitTypeDef NVIC_InitStructure;
+  TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+
+  /* TIM3 clock enable */
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+  
+  /* Enable the TIM3 gloabal Interrupt */
+  NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 5;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure);
+  
+  /*10ms中断一次*/ 
+  TIM_TimeBaseStructure.TIM_Period = 100-1;
+  TIM_TimeBaseStructure.TIM_Prescaler = (uint16_t) ((SystemCoreClock / 2) / 10000) - 1;
+  TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV2;
+  TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+
+  TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
+  
+  /* TIM Interrupts enable */
+  TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
+  
+  TIM_Cmd(TIM3, ENABLE);
+  
+
+
+}
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /**
@@ -261,6 +203,7 @@ int main(void)
   GPIO_SetBits(GPIOE,GPIO_Pin_4);//熄灭LED灯
   
   UART_Init();
+  TIM_Config();
   
   
   printf("\r\n======================================================================");

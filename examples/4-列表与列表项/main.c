@@ -97,121 +97,134 @@ void start_task(void *pvParameters);//任务函数
 
 /*Task1*/
 #define TASK1_PRIO		2
-#define TASK1_SIZE 		256  
+#define TASK1_SIZE 		50  
 TaskHandle_t Task1_Handler;
 void TASK1_entry(void *pvParameters);
 
-/*Task2*/
-#define TASK2_PRIO		3
-#define TASK2_SIZE 		128  
-TaskHandle_t Task2_Handler;
-void TASK2_entry(void *pvParameters);
+
+//定义一个测试用的列表和3个列表项
+List_t TestList;	//测试用列表
+ListItem_t ListItem1;	//测试用列表项1
+ListItem_t ListItem2;	//测试用列表项2
+ListItem_t ListItem3;	//测试用列表项3
 
 
-char InfoBuffer[1000];				//保存信息的数组
 /*Task1*/
 void TASK1_entry(void *pvParameters)
 {
-  uint32_t TotalRunTime;
-  UBaseType_t ArraySize,x;
-  TaskStatus_t *StatusArray;
+  //第一步：初始化列表和列表项
+  vListInitialise(&TestList);
+  vListInitialiseItem(&ListItem1);
+  vListInitialiseItem(&ListItem2);
+  vListInitialiseItem(&ListItem3);
   
-  TaskHandle_t TaskHandle;	
-  TaskStatus_t TaskStatus;
+  ListItem1.xItemValue=40;			//ListItem1列表项值为40
+  ListItem2.xItemValue=60;			//ListItem2列表项值为60
+  ListItem3.xItemValue=50;			//ListItem3列表项值为50
   
-  eTaskState TaskState;
-  char TaskInfo[10];
+  //第二步：打印列表和其他列表项的地址
+  printf("/*******************列表和列表项地址*******************/\r\n");
+  printf("项目                              地址				    \r\n");
+  printf("TestList                          %#x					\r\n",(int)&TestList);
+  printf("TestList->pxIndex                 %#x					\r\n",(int)TestList.pxIndex);
+  printf("TestList->xListEnd                %#x					\r\n",(int)(&TestList.xListEnd));
+  printf("ListItem1                         %#x					\r\n",(int)&ListItem1);
+  printf("ListItem2                         %#x					\r\n",(int)&ListItem2);
+  printf("ListItem3                         %#x					\r\n",(int)&ListItem3);
+  printf("/************************结束**************************/\r\n");
   
-  //第一步：函数uxTaskGetSystemState()的使用
-  printf("/********第一步：函数uxTaskGetSystemState()的使用**********/\r\n");
-  ArraySize=uxTaskGetNumberOfTasks();		//获取系统任务数量
-  StatusArray=pvPortMalloc(ArraySize*sizeof(TaskStatus_t));//申请内存
-  if(StatusArray!=NULL)					//内存申请成功
-  {
-    ArraySize=uxTaskGetSystemState((TaskStatus_t* 	)StatusArray, 	//任务信息存储数组
-                                   (UBaseType_t		)ArraySize, 	//任务信息存储数组大小
-                                   (uint32_t*		)&TotalRunTime);//保存系统总的运行时间
-    printf("TaskName\t\tPriority\t\tTaskNumber\t\t\r\n");
-    for(x=0;x<ArraySize;x++)
-    {
-      //通过串口打印出获取到的系统任务的有关信息，比如任务名称、
-      //任务优先级和任务编号。
-      printf("%s\t\t%d\t\t\t%d\t\t\t\r\n",				
-             StatusArray[x].pcTaskName,
-             (int)StatusArray[x].uxCurrentPriority,
-             (int)StatusArray[x].xTaskNumber);
-      
-    }
-  }
-  vPortFree(StatusArray);	//释放内存
-  printf("/**************************结束***************************/\r\n");
-
+  SysCtlDelay(2*(SystemCoreClock/3));
   
-  //第二步：函数vTaskGetInfo()的使用
-  printf("/************第二步：函数vTaskGetInfo()的使用**************/\r\n");
-  TaskHandle=xTaskGetHandle("TASK2");			//根据任务名获取任务句柄。
-  //获取TASK2的任务信息
-  vTaskGetInfo((TaskHandle_t	)TaskHandle, 		//任务句柄
-               (TaskStatus_t*	)&TaskStatus, 		//任务信息结构体
-               (BaseType_t	)pdTRUE,			//允许统计任务堆栈历史最小剩余大小
-               (eTaskState	)eInvalid);			//函数自己获取任务运行壮态
-  //通过串口打印出指定任务的有关信息。
-  printf("任务名:                %s\r\n",TaskStatus.pcTaskName);
-  printf("任务编号:              %d\r\n",(int)TaskStatus.xTaskNumber);
-  printf("任务壮态:              %d\r\n",TaskStatus.eCurrentState);
-  printf("任务当前优先级:        %d\r\n",(int)TaskStatus.uxCurrentPriority);
-  printf("任务基优先级:          %d\r\n",(int)TaskStatus.uxBasePriority);
-  printf("任务堆栈基地址:        %#x\r\n",(int)TaskStatus.pxStackBase);
-  printf("任务堆栈历史剩余最小值:%d\r\n",TaskStatus.usStackHighWaterMark);
-  printf("/**************************结束***************************/\r\n");
-
+  //第三步：向列表TestList添加列表项ListItem1，并通过串口打印所有
+  //列表项中成员变量pxNext和pxPrevious的值，通过这两个值观察列表
+  //项在列表中的连接情况。
+  vListInsert(&TestList,&ListItem1);		//插入列表项ListItem1
+  printf("/******************添加列表项ListItem1*****************/\r\n");
+  printf("项目                              地址				    \r\n");
+  printf("TestList->xListEnd->pxNext        %#x					\r\n",(int)(TestList.xListEnd.pxNext));
+  printf("ListItem1->pxNext                 %#x					\r\n",(int)(ListItem1.pxNext));
+  printf("/*******************前后向连接分割线********************/\r\n");
+  printf("TestList->xListEnd->pxPrevious    %#x					\r\n",(int)(TestList.xListEnd.pxPrevious));
+  printf("ListItem1->pxPrevious             %#x					\r\n",(int)(ListItem1.pxPrevious));
+  printf("/************************结束**************************/\r\n");
   
-  //第三步：函数eTaskGetState()的使用	
-  printf("/***********第三步：函数eTaskGetState()的使用*************/\r\n");
-  TaskHandle=xTaskGetHandle("TASK1");		//根据任务名获取任务句柄。
-  TaskState=eTaskGetState(TaskHandle);			//获取query_task任务的任务壮态
-  memset(TaskInfo,0,10);						
-  switch((int)TaskState)
-  {
-  case 0:
-    sprintf(TaskInfo,"Running");
-    break;
-  case 1:
-    sprintf(TaskInfo,"Ready");
-    break;
-  case 2:
-    sprintf(TaskInfo,"Suspend");
-    break;
-  case 3:
-    sprintf(TaskInfo,"Delete");
-    break;
-  case 4:
-    sprintf(TaskInfo,"Invalid");
-    break;
-  }
-  printf("任务壮态值:%d,对应的壮态为:%s\r\n",TaskState,TaskInfo);
-  printf("/**************************结束**************************/\r\n");
-
+  SysCtlDelay(2*(SystemCoreClock/3));
   
-  //第四步：函数vTaskList()的使用	
-  printf("/*************第三步：函数vTaskList()的使用*************/\r\n");
-  vTaskList(InfoBuffer);							//获取所有任务的信息
-  printf("%s\r\n",InfoBuffer);					//通过串口打印所有任务的信息
-  printf("/**************************结束**************************/\r\n");
+  //第四步：向列表TestList添加列表项ListItem2，并通过串口打印所有
+  //列表项中成员变量pxNext和pxPrevious的值，通过这两个值观察列表
+  //项在列表中的连接情况。
+  vListInsert(&TestList,&ListItem2);	//插入列表项ListItem2
+  printf("/******************添加列表项ListItem2*****************/\r\n");
+  printf("项目                              地址				    \r\n");
+  printf("TestList->xListEnd->pxNext        %#x					\r\n",(int)(TestList.xListEnd.pxNext));
+  printf("ListItem1->pxNext                 %#x					\r\n",(int)(ListItem1.pxNext));
+  printf("ListItem2->pxNext                 %#x					\r\n",(int)(ListItem2.pxNext));
+  printf("/*******************前后向连接分割线********************/\r\n");
+  printf("TestList->xListEnd->pxPrevious    %#x					\r\n",(int)(TestList.xListEnd.pxPrevious));
+  printf("ListItem1->pxPrevious             %#x					\r\n",(int)(ListItem1.pxPrevious));
+  printf("ListItem2->pxPrevious             %#x					\r\n",(int)(ListItem2.pxPrevious));
+  printf("/************************结束**************************/\r\n");
+  
+  SysCtlDelay(2*(SystemCoreClock/3));
+  
+  //第五步：向列表TestList添加列表项ListItem3，并通过串口打印所有
+  //列表项中成员变量pxNext和pxPrevious的值，通过这两个值观察列表
+  //项在列表中的连接情况。
+  vListInsert(&TestList,&ListItem3);	//插入列表项ListItem3
+  printf("/******************添加列表项ListItem3*****************/\r\n");
+  printf("项目                              地址				    \r\n");
+  printf("TestList->xListEnd->pxNext        %#x					\r\n",(int)(TestList.xListEnd.pxNext));
+  printf("ListItem1->pxNext                 %#x					\r\n",(int)(ListItem1.pxNext));
+  printf("ListItem3->pxNext                 %#x					\r\n",(int)(ListItem3.pxNext));
+  printf("ListItem2->pxNext                 %#x					\r\n",(int)(ListItem2.pxNext));
+  printf("/*******************前后向连接分割线********************/\r\n");
+  printf("TestList->xListEnd->pxPrevious    %#x					\r\n",(int)(TestList.xListEnd.pxPrevious));
+  printf("ListItem1->pxPrevious             %#x					\r\n",(int)(ListItem1.pxPrevious));
+  printf("ListItem3->pxPrevious             %#x					\r\n",(int)(ListItem3.pxPrevious));
+  printf("ListItem2->pxPrevious             %#x					\r\n",(int)(ListItem2.pxPrevious));
+  printf("/************************结束**************************/\r\n");
+  
+  SysCtlDelay(2*(SystemCoreClock/3));
+  
+  //第六步：删除ListItem2，并通过串口打印所有列表项中成员变量pxNext和
+  //pxPrevious的值，通过这两个值观察列表项在列表中的连接情况。
+  uxListRemove(&ListItem2);						//删除ListItem2
+  printf("/******************删除列表项ListItem2*****************/\r\n");
+  printf("项目                              地址				    \r\n");
+  printf("TestList->xListEnd->pxNext        %#x					\r\n",(int)(TestList.xListEnd.pxNext));
+  printf("ListItem1->pxNext                 %#x					\r\n",(int)(ListItem1.pxNext));
+  printf("ListItem3->pxNext                 %#x					\r\n",(int)(ListItem3.pxNext));
+  printf("/*******************前后向连接分割线********************/\r\n");
+  printf("TestList->xListEnd->pxPrevious    %#x					\r\n",(int)(TestList.xListEnd.pxPrevious));
+  printf("ListItem1->pxPrevious             %#x					\r\n",(int)(ListItem1.pxPrevious));
+  printf("ListItem3->pxPrevious             %#x					\r\n",(int)(ListItem3.pxPrevious));
+  printf("/************************结束**************************/\r\n");
+  
+  SysCtlDelay(2*(SystemCoreClock/3));
+  
+  //第七步：删除ListItem2，并通过串口打印所有列表项中成员变量pxNext和
+  //pxPrevious的值，通过这两个值观察列表项在列表中的连接情况。
+  TestList.pxIndex=TestList.pxIndex->pxNext;			//pxIndex向后移一项，这样pxIndex就会指向ListItem1。
+  vListInsertEnd(&TestList,&ListItem2);				//列表末尾添加列表项ListItem2
+  printf("/***************在末尾添加列表项ListItem2***************/\r\n");
+  printf("项目                              地址				    \r\n");
+  printf("TestList->pxIndex                 %#x					\r\n",(int)TestList.pxIndex);
+  printf("TestList->xListEnd->pxNext        %#x					\r\n",(int)(TestList.xListEnd.pxNext));
+  printf("ListItem2->pxNext                 %#x					\r\n",(int)(ListItem2.pxNext));
+  printf("ListItem1->pxNext                 %#x					\r\n",(int)(ListItem1.pxNext));
+  printf("ListItem3->pxNext                 %#x					\r\n",(int)(ListItem3.pxNext));
+  printf("/*******************前后向连接分割线********************/\r\n");
+  printf("TestList->xListEnd->pxPrevious    %#x					\r\n",(int)(TestList.xListEnd.pxPrevious));
+  printf("ListItem2->pxPrevious             %#x					\r\n",(int)(ListItem2.pxPrevious));
+  printf("ListItem1->pxPrevious             %#x					\r\n",(int)(ListItem1.pxPrevious));
+  printf("ListItem3->pxPrevious             %#x					\r\n",(int)(ListItem3.pxPrevious));
+  printf("/************************结束**************************/\r\n\r\n\r\n");
   while(1)
   {
     vTaskDelay(1000);                           //延时1s，也就是1000个时钟节拍	
   }
 }   
 
-/*Task2*/
-void TASK2_entry(void *pvParameters)
-{
-  while(1)
-  {
-    vTaskDelay(800);
-  }
-}
 
 //开始任务任务函数
 void start_task(void *pvParameters)
@@ -223,17 +236,11 @@ void start_task(void *pvParameters)
               (uint16_t       )TASK1_SIZE,//任务堆栈大小
               (void*          )NULL,	     //传递给任务函数的参数
               (UBaseType_t    )TASK1_PRIO,//任务优先级
-              (TaskHandle_t*  )&Task1_Handler);//任务句柄 
-  //创建TASK2任务
-  xTaskCreate((TaskFunction_t )TASK2_entry, //任务函数
-              (const char*    )"TASK2",    //任务名称
-              (uint16_t       )TASK2_SIZE, //任务堆栈大小
-              (void*          )NULL,          //传递给任务函数的参数
-              (UBaseType_t    )TASK2_PRIO, //任务优先级
-              (TaskHandle_t*  )&Task2_Handler);//任务句柄   
+              (TaskHandle_t*  )&Task1_Handler);//任务句柄        
   vTaskDelete(StartTask_Handler); //删除开始任务
   taskEXIT_CRITICAL();            //退出临界区
 }
+
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
