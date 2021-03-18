@@ -49,7 +49,7 @@
 #define configMINIMAL_STACK_SIZE	( ( unsigned short ) 128 )
 #define configTOTAL_HEAP_SIZE		( ( size_t ) ( 17 * 1024 ) )
 #define configMAX_TASK_NAME_LEN		( 16 )
-#define configUSE_TRACE_FACILITY	0
+//#define configUSE_TRACE_FACILITY	0
 #define configUSE_16_BIT_TICKS		0
 #define configIDLE_SHOULD_YIELD		1
 
@@ -67,6 +67,13 @@ to exclude the API function. */
 #define INCLUDE_vTaskSuspend			1
 #define INCLUDE_vTaskDelayUntil			1
 #define INCLUDE_vTaskDelay				1
+
+
+#define configUSE_TRACE_FACILITY                1   //启用可视化跟踪调试
+#define INCLUDE_xTaskGetHandle                  1   //获取任务的任务句柄
+#define configUSE_STATS_FORMATTING_FUNCTIONS    1   //状态格式，使能 vTaskList()和vTaskGetRunTimeStats()
+
+
 
 /* This is the raw value as per the Cortex-M3 NVIC.  Values can be 255
 (lowest) to 0 (1?) (highest). */
