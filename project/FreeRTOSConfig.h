@@ -73,6 +73,8 @@ to exclude the API function. */
 #define INCLUDE_xTaskGetHandle                  1   //获取任务的任务句柄
 #define configUSE_STATS_FORMATTING_FUNCTIONS    1   //状态格式，使能 vTaskList()和vTaskGetRunTimeStats()
 
+#define configUSE_COUNTING_SEMAPHORES		1   //为1时使用计数信号量
+
 
 
 /* This is the raw value as per the Cortex-M3 NVIC.  Values can be 255
