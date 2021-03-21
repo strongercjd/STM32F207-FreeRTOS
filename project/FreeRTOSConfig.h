@@ -74,6 +74,7 @@ to exclude the API function. */
 #define configUSE_STATS_FORMATTING_FUNCTIONS    1   //状态格式，使能 vTaskList()和vTaskGetRunTimeStats()
 
 #define configUSE_COUNTING_SEMAPHORES		1   //为1时使用计数信号量
+#define configUSE_MUTEXES			1   //为1时使用互斥信号量
 
 
 
@@ -105,6 +106,13 @@ NVIC value of 255. */
 #define configKERNEL_INTERRUPT_PRIORITY 		( configLIBRARY_LOWEST_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY 	( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
 
+/***************************************************************************************************************/
+/*                                FreeRTOS与软件定时器有关的配置选项                                            */
+/***************************************************************************************************************/
+#define configUSE_TIMERS				1                               //为1时启用软件定时器
+#define configTIMER_TASK_PRIORITY		        (configMAX_PRIORITIES-1)        //软件定时器优先级
+#define configTIMER_QUEUE_LENGTH		        5                               //软件定时器队列长度
+#define configTIMER_TASK_STACK_DEPTH	                (configMINIMAL_STACK_SIZE*2)    //软件定时器任务堆栈大小
 
 #define xPortPendSVHandler 	PendSV_Handler
 #define vPortSVCHandler 	SVC_Handler
